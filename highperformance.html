@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>High-Performance Application Architecture Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #fcfbf9; color: #1c1917; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 350px; max-height: 400px; }
+        .card-interaction { transition: all 0.3s ease; cursor: pointer; border: 1px solid #e7e5e4; }
+        .card-interaction:hover { transform: translateY(-4px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-color: #d6d3d1; }
+        .active-spec { border-color: #0f172a; background-color: #f8fafc; ring: 2px solid #0f172a; }
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        .module-box { transition: all 0.2s; }
+        .module-box:hover { background-color: #f1f5f9; }
+    </style>
+    <!-- Chosen Palette: Warm Professional - Stone background (#fcfbf9), Slate text/accents, Emerald/Amber indicators -->
+    <!-- Application Structure Plan: 
+         1. Specialization Selector: Allows user to define the context (Web, Data, Automation), updating all downstream data.
+         2. Architectural Blueprint: Interactive grid revealing Design Patterns (Factory, Observer) mapped to system modules.
+         3. Optimization Sandbox: A "Before/After" simulation where users toggle requirements (Caching, Indexing) to see impact on Latency via Chart.js.
+         4. QA & Observability Console: Visualizes the "80% Coverage" requirement and simulates "Monitoring" data via Plotly.
+         Why: Breaks down the dense requirements list into actionable, visual phases (Plan -> Optimize -> Monitor). -->
+    <!-- Visualization & Content Choices:
+         - Spec Selection: Interactive Cards -> Sets Global State -> Instant context switch.
+         - Architecture: HTML Grid + JS Content Swap -> Explains Design Patterns without clutter.
+         - Performance: Chart.js Bar Chart -> Visualizes "Optimization Techniques" impact on latency.
+         - Monitoring: Plotly.js Line Chart -> Simulates real-time observability requirement.
+         - Testing: Chart.js Doughnut -> Visualizes the >80% coverage KPI.
+         - Justification: Chart.js for clean standard metrics, Plotly for "scientific/dashboard" feel of monitoring. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+</head>
+<body class="bg-stone-50 text-slate-800">
+
+    <!-- Header / Hero -->
+    <header class="w-full bg-white border-b border-stone-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <span class="text-2xl font-bold tracking-tight text-slate-900">ArchPlan<span class="text-emerald-600">.py</span></span>
+                <span class="hidden md:inline-block px-3 py-1 bg-stone-100 text-xs uppercase tracking-wide font-semibold text-stone-500 rounded-full">High-Performance Blueprint</span>
+            </div>
+            <div class="text-sm font-medium text-slate-500" id="current-mode-display">Mode: Web Service</div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-12">
+
+        <!-- Intro Section -->
+        <section class="text-center max-w-3xl mx-auto mb-12">
+            <h1 class="text-4xl font-bold text-slate-900 mb-4">Project Architecture & Optimization</h1>
+            <p class="text-lg text-slate-600 leading-relaxed">
+                Welcome to the interactive planning suite for your high-performance Python application. 
+                This tool synthesizes the project requirements—from <strong>concurrency</strong> to <strong>observability</strong>—into an actionable blueprint. 
+                Start by selecting your specialization below to configure the architecture.
+            </p>
+        </section>
+
+        <!-- 1. Specialization Selector -->
+        <section id="specialization-section">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">1. Select Specialization</h2>
+                <div class="h-px bg-stone-200 flex-1 ml-6"></div>
+            </div>
+            <p class="text-slate-600 mb-6">Define the core domain of your application. This choice dictates the specific design patterns and optimization strategies visualized in the subsequent sections.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Card 1 -->
+                <div class="card-interaction bg-white p-6 rounded-xl shadow-sm active-spec" onclick="selectSpec('web')" id="card-web">
+                    <div class="text-3xl mb-3">🌐</div>
+                    <h3 class="text-xl font-semibold mb-2">High-Traffic Web Service</h3>
+                    <p class="text-sm text-slate-500 mb-4">Focus on low latency, request throughput, and horizontal scaling.</p>
+                    <ul class="text-xs text-slate-400 space-y-1">
+                        <li>• Asyncio / FastAPI</li>
+                        <li>• Redis Caching</li>
+                        <li>• Load Balancing</li>
+                    </ul>
+                </div>
+                <!-- Card 2 -->
+                <div class="card-interaction bg-white p-6 rounded-xl shadow-sm" onclick="selectSpec('data')" id="card-data">
+                    <div class="text-3xl mb-3">⚡</div>
+                    <h3 class="text-xl font-semibold mb-2">Data Processing Pipeline</h3>
+                    <p class="text-sm text-slate-500 mb-4">Focus on throughput, memory management, and parallel execution.</p>
+                    <ul class="text-xs text-slate-400 space-y-1">
+                        <li>• Multiprocessing</li>
+                        <li>• ETL Optimization</li>
+                        <li>• Batch Processing</li>
+                    </ul>
+                </div>
+                <!-- Card 3 -->
+                <div class="card-interaction bg-white p-6 rounded-xl shadow-sm" onclick="selectSpec('auto')" id="card-auto">
+                    <div class="text-3xl mb-3">🤖</div>
+                    <h3 class="text-xl font-semibold mb-2">Enterprise Automation</h3>
+                    <p class="text-sm text-slate-500 mb-4">Focus on reliability, integration patterns, and task orchestration.</p>
+                    <ul class="text-xs text-slate-400 space-y-1">
+                        <li>• Task Queues (Celery)</li>
+                        <li>• Event-Driven</li>
+                        <li>• Robust Retry Logic</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2. Architecture & Design Patterns -->
+        <section id="architecture-section" class="bg-white rounded-2xl shadow-sm border border-stone-100 overflow-hidden">
+            <div class="p-8 border-b border-stone-100">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-2xl font-bold text-slate-900">2. Modular Architecture & Design Patterns</h2>
+                </div>
+                <p class="text-slate-600 max-w-4xl">
+                    High-performance applications require clear separation of concerns. Below is the proposed modular structure. 
+                    <strong>Click on any module</strong> to reveal the specific Design Patterns (Strategy, Factory, Observer) and implementation details recommended for your selected specialization.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 min-h-[400px]">
+                <!-- Interactive Diagram Area -->
+                <div class="lg:col-span-1 bg-stone-50 p-6 flex flex-col gap-4 border-r border-stone-100">
+                    <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-2">System Modules</h3>
+                    
+                    <button onclick="showPattern('interface')" class="module-box w-full text-left p-4 bg-white border border-stone-200 rounded-lg shadow-sm hover:border-emerald-400 group">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-slate-700">Interface / API Layer</span>
+                            <span class="text-emerald-500 opacity-0 group-hover:opacity-100">➜</span>
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">Entry point & validation</div>
+                    </button>
+
+                    <button onclick="showPattern('core')" class="module-box w-full text-left p-4 bg-white border border-stone-200 rounded-lg shadow-sm hover:border-emerald-400 group">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-slate-700">Core Business Logic</span>
+                            <span class="text-emerald-500 opacity-0 group-hover:opacity-100">➜</span>
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">Processing & rules engine</div>
+                    </button>
+
+                    <button onclick="showPattern('data')" class="module-box w-full text-left p-4 bg-white border border-stone-200 rounded-lg shadow-sm hover:border-emerald-400 group">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-slate-700">Data Persistence</span>
+                            <span class="text-emerald-500 opacity-0 group-hover:opacity-100">➜</span>
+                        </div>
+                        <div class="text-xs text-slate-400 mt-1">DB, Cache & Storage</div>
+                    </button>
+                    
+                    <div class="mt-auto p-4 bg-slate-100 rounded border border-slate-200 text-xs text-slate-600 italic">
+                        "Build modular architecture with clear separation of concerns."
+                    </div>
+                </div>
+
+                <!-- Detail View Area -->
+                <div class="lg:col-span-2 p-8 flex items-center justify-center bg-white">
+                    <div id="pattern-content" class="max-w-lg w-full">
+                        <!-- Content injected via JS -->
+                        <div class="text-center text-slate-400">
+                            <p class="text-4xl mb-4">👆</p>
+                            <p>Select a module on the left to view architectural details.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Performance & Optimization Lab -->
+        <section id="optimization-section">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">3. Optimization Sandbox</h2>
+                <div class="h-px bg-stone-200 flex-1 ml-6"></div>
+            </div>
+            <p class="text-slate-600 mb-8">
+                Simulate the impact of the required optimization techniques on your application's performance. 
+                Toggle the strategies below to see estimated gains in response time or processing speed based on standard Python benchmarks.
+            </p>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Controls -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <h3 class="font-semibold text-slate-800 mb-6">Applied Strategies</h3>
+                    
+                    <div class="space-y-6">
+                        <!-- Toggle 1 -->
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <div class="font-medium text-slate-700">Caching Strategy</div>
+                                <div class="text-xs text-slate-500">Redis/Memcached L2 Cache</div>
+                            </div>
+                            <label class="flex items-center cursor-pointer relative">
+                                <input type="checkbox" id="toggle-cache" class="toggle-checkbox sr-only" onchange="updatePerformanceChart()">
+                                <div class="w-11 h-6 bg-gray-200 rounded-full border border-gray-300 toggle-bg transition-colors duration-200 ease-in-out"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out shadow-sm border border-gray-200"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 2 -->
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <div class="font-medium text-slate-700">DB Indexing</div>
+                                <div class="text-xs text-slate-500">Query Optimization & B-Trees</div>
+                            </div>
+                            <label class="flex items-center cursor-pointer relative">
+                                <input type="checkbox" id="toggle-db" class="toggle-checkbox sr-only" onchange="updatePerformanceChart()">
+                                <div class="w-11 h-6 bg-gray-200 rounded-full border border-gray-300 toggle-bg transition-colors duration-200 ease-in-out"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out shadow-sm border border-gray-200"></div>
+                            </label>
+                        </div>
+
+                        <!-- Toggle 3 -->
+                        <div class="flex items-center justify-between">
+                            <div class="pr-4">
+                                <div class="font-medium text-slate-700">Concurrency</div>
+                                <div class="text-xs text-slate-500">AsyncIO / Multiprocessing</div>
+                            </div>
+                            <label class="flex items-center cursor-pointer relative">
+                                <input type="checkbox" id="toggle-async" class="toggle-checkbox sr-only" onchange="updatePerformanceChart()">
+                                <div class="w-11 h-6 bg-gray-200 rounded-full border border-gray-300 toggle-bg transition-colors duration-200 ease-in-out"></div>
+                                <div class="dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform duration-200 ease-in-out shadow-sm border border-gray-200"></div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 p-4 bg-emerald-50 text-emerald-800 text-sm rounded border border-emerald-100">
+                        <strong>Project Goal:</strong> Implement performance profiling and optimization to achieve minimal latency.
+                    </div>
+                </div>
+
+                <!-- Visualization -->
+                <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-stone-100 flex flex-col justify-center">
+                    <h4 class="text-sm font-semibold text-slate-400 uppercase mb-4 text-center">Performance Impact Analysis (Latency ms)</h4>
+                    <div class="chart-container">
+                        <canvas id="perfChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Quality & Observability -->
+        <section id="qa-section">
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-900">4. Quality & Observability</h2>
+                <div class="h-px bg-stone-200 flex-1 ml-6"></div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Test Coverage -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Test Suite Coverage</h3>
+                            <p class="text-sm text-slate-500">Mandatory Goal: >80%</p>
+                        </div>
+                        <div class="text-2xl bg-stone-50 p-2 rounded">✅</div>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 h-12">
+                        Comprehensive test suite implementation including Unit Tests, Integration Tests, and E2E scenarios.
+                    </p>
+                    <div class="chart-container" style="height: 250px;">
+                        <canvas id="testChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Monitoring Dashboard -->
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-stone-100">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">System Monitoring</h3>
+                            <p class="text-sm text-slate-500">Real-time Observability</p>
+                        </div>
+                        <div class="text-2xl bg-stone-50 p-2 rounded">📈</div>
+                    </div>
+                    <p class="text-slate-600 text-sm mb-6 h-12">
+                        Mock view of the required monitoring dashboard tracking system resources and application health.
+                    </p>
+                    <div class="chart-container w-full" style="height: 250px;">
+                        <div id="monitorChart" style="width:100%; height:100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="bg-slate-900 text-slate-400 py-12 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <p class="mb-4 text-slate-200 font-semibold">Ready for Production</p>
+            <p class="text-sm max-w-2xl mx-auto">
+                This blueprint covers all key requirements: Modular Architecture, Advanced Design Patterns, Database Optimization, Caching Strategies, and Robust Testing. Proceed to implementation.
+            </p>
+            <div class="mt-8 text-xs text-slate-600">Generated for Project: High-Performance Application</div>
+        </div>
+    </footer>
+
+    <style>
+        /* Custom Toggle Styling */
+        .toggle-checkbox:checked ~ .toggle-bg {
+            background-color: #10b981;
+            border-color: #059669;
+        }
+        .toggle-checkbox:checked ~ .dot {
+            transform: translateX(100%);
+        }
+    </style>
+
+    <script>
+        // --- State Management ---
+        const state = {
+            specialization: 'web', // web, data, auto
+            optimizations: {
+                cache: false,
+                db: false,
+                async: false
+            }
+        };
+
+        // --- Data Models ---
+        const specData = {
+            web: {
+                title: "High-Traffic Web Service",
+                latencyBase: 450, // ms
+                desc: "Patterns: MVC, Dependency Injection",
+                details: {
+                    interface: { title: "API Gateway (FastAPI)", desc: "Handles rate limiting, request validation (Pydantic), and routing.", pattern: "Pattern: Facade & Adapter" },
+                    core: { title: "Service Layer", desc: "Contains business rules isolated from HTTP concerns.", pattern: "Pattern: Strategy (for varied logic) & Dependency Injection" },
+                    data: { title: "Async ORM Layer", desc: "Non-blocking database access with connection pooling.", pattern: "Pattern: Repository & Unit of Work" }
+                }
+            },
+            data: {
+                title: "Data Processing Pipeline",
+                latencyBase: 1200, // ms (simulated unit per batch)
+                desc: "Patterns: Pipeline, Filter",
+                details: {
+                    interface: { title: "Ingestion Service", desc: "Accepts raw data streams or bulk file uploads.", pattern: "Pattern: Producer-Consumer" },
+                    core: { title: "Processing Engine", desc: "Parallel transformation and validation logic.", pattern: "Pattern: Pipeline / Chain of Responsibility" },
+                    data: { title: "Data Warehouse Loader", desc: "Optimized bulk insertion and indexing.", pattern: "Pattern: Batch Iterator" }
+                }
+            },
+            auto: {
+                title: "Enterprise Automation",
+                latencyBase: 800, // ms
+                desc: "Patterns: Command, Observer",
+                details: {
+                    interface: { title: "Trigger Handler", desc: "Webhooks, Scheduled Jobs (Cron), and Manual Triggers.", pattern: "Pattern: Observer (Event Listener)" },
+                    core: { title: "Task Orchestrator", desc: "Manages workflow states and retries.", pattern: "Pattern: Command & State Machine" },
+                    data: { title: "Audit Log & State Store", desc: "Immutable record of execution history.", pattern: "Pattern: Event Sourcing" }
+                }
+            }
+        };
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initPerfChart();
+            initTestChart();
+            initMonitorChart();
+            selectSpec('web'); // Default
+            showPattern('core'); // Default view
+        });
+
+        // --- Interaction Logic ---
+        
+        function selectSpec(spec) {
+            state.specialization = spec;
+            
+            // Visual Update
+            document.querySelectorAll('.card-interaction').forEach(el => {
+                el.classList.remove('active-spec', 'ring-2', 'ring-slate-800', 'bg-stone-50');
+                if(el.id === `card-${spec}`) {
+                    el.classList.add('active-spec');
+                }
+            });
+
+            // Update Header Context
+            document.getElementById('current-mode-display').textContent = `Mode: ${specData[spec].title}`;
+            
+            // Reset Detail View
+            showPattern('interface');
+            
+            // Trigger Chart Updates (Base latency changes)
+            updatePerformanceChart();
+        }
+
+        function showPattern(module) {
+            const data = specData[state.specialization].details[module];
+            const contentDiv = document.getElementById('pattern-content');
+            
+            contentDiv.innerHTML = `
+                <div class="animate-fade-in">
+                    <div class="inline-block px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold rounded mb-4 uppercase tracking-wide">
+                        ${module.toUpperCase()} Architecture
+                    </div>
+                    <h3 class="text-3xl font-bold text-slate-800 mb-2">${data.title}</h3>
+                    <p class="text-lg font-medium text-slate-600 mb-6">${data.pattern}</p>
+                    <div class="h-px bg-stone-200 w-full mb-6"></div>
+                    <p class="text-slate-500 leading-relaxed">${data.desc}</p>
+                    <div class="mt-6 p-4 bg-stone-50 rounded border border-stone-200">
+                        <span class="font-semibold text-slate-700 text-sm">Key Implementation:</span>
+                        <p class="text-sm text-slate-500 mt-1">Python Type Hints, Abstract Base Classes (ABC), and Pydantic models ensure modularity.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Charts ---
+
+        let perfChartInstance = null;
+
+        function initPerfChart() {
+            const ctx = document.getElementById('perfChart').getContext('2d');
+            perfChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Request Processing', 'DB Query', 'Serialization', 'Total Latency'],
+                    datasets: [{
+                        label: 'Estimated Latency (ms)',
+                        data: [100, 200, 50, 350],
+                        backgroundColor: [
+                            '#cbd5e1', '#cbd5e1', '#cbd5e1', '#334155'
+                        ],
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: 'Time (ms)' } }
+                    }
+                }
+            });
+        }
+
+        function updatePerformanceChart() {
+            if (!perfChartInstance) return;
+            
+            const cache = document.getElementById('toggle-cache').checked;
+            const db = document.getElementById('toggle-db').checked;
+            const async = document.getElementById('toggle-async').checked;
+
+            const base = specData[state.specialization].latencyBase;
+            
+            // Logic: Caching affects DB and Process drastically. DB Opt affects DB. Async affects Process.
+            let processTime = base * 0.3;
+            let dbTime = base * 0.5;
+            let serialTime = base * 0.2;
+
+            if (db) dbTime *= 0.4; // 60% reduction
+            if (cache) {
+                dbTime *= 0.1; // 90% reduction (hit)
+                processTime *= 0.8;
+            }
+            if (async) {
+                processTime *= 0.5; // Parallel gain
+                // Slight overhead to serialization
+                serialTime *= 1.1;
+            }
+
+            const total = Math.round(processTime + dbTime + serialTime);
+
+            perfChartInstance.data.datasets[0].data = [
+                Math.round(processTime), 
+                Math.round(dbTime), 
+                Math.round(serialTime), 
+                total
+            ];
+            
+            // Color logic: if optimized, show green for total
+            const isOptimized = cache || db || async;
+            perfChartInstance.data.datasets[0].backgroundColor = [
+                 '#cbd5e1', '#cbd5e1', '#cbd5e1', 
+                 isOptimized ? '#10b981' : '#334155'
+            ];
+
+            perfChartInstance.update();
+        }
+
+        function initTestChart() {
+            const ctx = document.getElementById('testChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Covered', 'Uncovered'],
+                    datasets: [{
+                        data: [82, 18],
+                        backgroundColor: ['#10b981', '#f1f5f9'],
+                        hoverOffset: 4,
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '75%',
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw}%` } }
+                    }
+                }
+            });
+            // Add center text plugin simulated via layout or manual (keeping it simple for SPA)
+        }
+
+        function initMonitorChart() {
+            const container = document.getElementById('monitorChart');
+            
+            // Generate dummy time series
+            const times = [];
+            const cpu = [];
+            const memory = [];
+            const now = new Date();
+            
+            for(let i=0; i<20; i++) {
+                times.push(new Date(now.getTime() - (20-i)*1000).toISOString());
+                cpu.push(30 + Math.random() * 20);
+                memory.push(40 + Math.random() * 10);
+            }
+
+            const trace1 = {
+                x: times,
+                y: cpu,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'CPU Usage %',
+                line: { color: '#0f172a', width: 2 }
+            };
+
+            const trace2 = {
+                x: times,
+                y: memory,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Memory %',
+                line: { color: '#10b981', width: 2 }
+            };
+
+            const layout = {
+                margin: { t: 20, r: 20, b: 40, l: 40 },
+                showlegend: true,
+                legend: { orientation: 'h', y: 1.1 },
+                xaxis: { showgrid: false, visible: false }, // Simple view
+                yaxis: { range: [0, 100], gridcolor: '#f1f5f9' },
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                height: 250
+            };
+
+            const config = { responsive: true, displayModeBar: false };
+
+            Plotly.newPlot(container, [trace1, trace2], layout, config);
+
+            // Simulate real-time
+            setInterval(() => {
+                const time = new Date().toISOString();
+                const newCpu = 30 + Math.random() * 30; // Volatile
+                const newMem = 45 + Math.random() * 5;  // Stable
+
+                Plotly.extendTraces(container, {
+                    x: [[time], [time]],
+                    y: [[newCpu], [newMem]]
+                }, [0, 1], 30); // Keep last 30 points
+            }, 2000);
+        }
+
+    </script>
+</body>
+</html>
